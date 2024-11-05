@@ -145,4 +145,4 @@ jobs:
         run: pip${{ matrix.python_version }} install --find-links . --pre jacquev6-multiplatform-example
 
       - name: Run
-        run: python${{ matrix.python_version }} -c "import example"
+        run: python3 -c "import example"
