@@ -1,0 +1,8 @@
+ARG PYTHON_VERSION=3.8
+FROM python:$PYTHON_VERSION AS build
+
+ADD dist dist
+
+RUN pip3 install --find-links dist --pre jacquev6-multiplatform-example
+
+RUN python3 -c "import example" >/output.txt

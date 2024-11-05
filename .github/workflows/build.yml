@@ -1,7 +1,7 @@
 name: Build
 on: push
 jobs:
-  build-in-docker:
+  build-for-linux-arm64:
     runs-on: ubuntu-24.04
     strategy:
       matrix:
@@ -21,7 +21,7 @@ jobs:
         run: |
           docker buildx build --platform linux/arm64 --build-arg PYTHON_VERSION=${{ matrix.python_version }} --load .
           image=$(docker buildx build --platform linux/arm64 --build-arg PYTHON_VERSION=${{ matrix.python_version }} --load . --quiet)
-          container=$(docker create $image)
+          container=$(docker create --platform linux/arm64 $image)
           docker cp $container:/wd/dist .
 
       - name: Upload the wheel to GitHub Actions artifacts
@@ -29,6 +29,38 @@ jobs:
         with:
           name: wheel-dist-${{ matrix.python_version }}-linux-arm64
           path: dist
+
+  check-on-linux-arm64:
+    runs-on: ${{ matrix.os }}
+    needs:
+      - build-for-linux-arm64
+    strategy:
+      fail-fast: false
+      matrix:
+        os:
+          - ubuntu-24.04
+        python_version: ['3.8', '3.13']
+    steps:
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+        with:
+          platforms: arm64
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+      # DO NOT install any other dependencies, to test that the wheels are self-contained
+
+      - name: Download the wheels from GitHub Actions artifacts
+        uses: actions/download-artifact@v4
+        with:
+          pattern: wheel-dist-${{ matrix.python_version }}-linux-arm64
+          merge-multiple: true
+
+      - name: Install the wheel and run it (during a Docker build in Qemu)
+        run: |
+          docker buildx build --platform linux/arm64 --build-arg PYTHON_VERSION=${{ matrix.python_version }} --load . --file Dockerfile.check
+          image=$(docker buildx build --platform linux/arm64 --build-arg PYTHON_VERSION=${{ matrix.python_version }} --load . --file Dockerfile.check --quiet)
+          container=$(docker create --platform linux/arm64 $image)
+          docker cp $container:/output.txt - | tar --extract --to-stdout
 
   # build-for-linux-x86:
   #   runs-on: ubuntu-20.04
