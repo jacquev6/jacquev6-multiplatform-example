@@ -26,8 +26,10 @@ for name in [
     "freedesktop_os_release",
     "android_ver",
 ]:
-    if hasattr(platform, name):
-        print(f"{name}: {getattr(platform, name)()}")
+    try:
+        print(f"{name:33}:", getattr(platform, name)())
+    except Exception as e:
+        print(f"{name:24} (failed): {e}")
 
 
 assert add(4, 5) == 9
