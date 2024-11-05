@@ -3,6 +3,6 @@ FROM python:$PYTHON_VERSION AS build
 
 ADD *.whl .
 
-RUN pip3 install --find-links . --pre jacquev6-multiplatform-example
+RUN pip3 install --find-links . example
 
 RUN python3 -c "import example" >/output.txt
