@@ -106,6 +106,8 @@ jobs:
     runs-on: ${{ matrix.os }}
     needs:
       - build-for-linux
+      - build-for-windows
+      - build-for-macos
     strategy:
       fail-fast: false
       matrix:
