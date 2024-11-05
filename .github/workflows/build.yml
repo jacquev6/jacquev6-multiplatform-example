@@ -3,29 +3,31 @@ on: push
 jobs:
   build-in-docker:
     runs-on: ubuntu-24.04
+    strategy:
+      matrix:
+        python_version: ['3.8', '3.13']
     steps:
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
         with:
           platforms: arm64
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v1
+        uses: docker/setup-buildx-action@v3
 
       - name: Get the code
         uses: actions/checkout@v4
 
-      - name: Build the wheel (during a Docker build)
+      - name: Build the wheel, make it machine-independent and check it (during a Docker build in Qemu)
         run: |
-          docker buildx build --platform linux/arm64 --load .
-          image=$(docker buildx build --platform linux/arm64 --load . --quiet)
+          docker buildx build --platform linux/arm64 --build-arg PYTHON_VERSION=${{ matrix.python_version }} --load .
+          image=$(docker buildx build --platform linux/arm64 --build-arg PYTHON_VERSION=${{ matrix.python_version }} --load . --quiet)
           container=$(docker create $image)
-          mkdir dist
-          docker cp $container:/wd/dist/jacquev6_multiplatform_example-0.1.0-cp313-cp313-manylinux_2_17_aarch64.manylinux2014_aarch64.manylinux_2_31_aarch64.whl dist
+          docker cp $container:/wd/dist .
 
       - name: Upload the wheel to GitHub Actions artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: wheel-dist-3.13-linux-arm64
+          name: wheel-dist-${{ matrix.python_version }}-linux-arm64
           path: dist
 
   # build-for-linux-x86:
