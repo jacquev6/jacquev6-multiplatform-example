@@ -17,7 +17,7 @@ jobs:
       - name: Build the wheel (during a Docker build)
         run: |
           docker buildx build --platform linux/arm64 --load .
-          image=$(docker buildx build --platform linux/arm64 --quiet .)
+          image=$(docker buildx build --platform linux/arm64 --load . --quiet)
           container=$(docker create $image)
           docker cp $container:/wd/dist/jacquev6_multiplatform_example-0.1.0-cp313-cp313-manylinux_2_17_aarch64.manylinux2014_aarch64.manylinux_2_31_aarch64.whl .
 
