@@ -49,6 +49,9 @@ jobs:
         uses: docker/setup-buildx-action@v3
       # DO NOT install any other dependencies, to test that the wheels are self-contained
 
+      - name: Get the code
+        uses: actions/checkout@v4
+
       - name: Download the wheels from GitHub Actions artifacts
         uses: actions/download-artifact@v4
         with:
