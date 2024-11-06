@@ -716,8 +716,8 @@ max_sat_options = [
                                         "solver",
                                         dict(
                                             help="The solver to use to solve the linear programs.",
-                                            type=click.Choice(["alglib"]),
-                                            default="alglib",
+                                            type=click.Choice(["glop", "alglib"]),
+                                            default="glop",
                                             show_default=True,
                                         ),
                                         {},
@@ -872,7 +872,9 @@ def classification_model(
             command_line += ["--mrsort.weights-profiles-breed.weights-strategy", mrsort__weights_profiles_breed__weights_strategy]
             if mrsort__weights_profiles_breed__weights_strategy == "linear-program":
                 command_line += ["--mrsort.weights-profiles-breed.linear-program.solver", mrsort__weights_profiles_breed__linear_program__solver]
-                if mrsort__weights_profiles_breed__linear_program__solver == "alglib":
+                if mrsort__weights_profiles_breed__linear_program__solver == "glop":
+                    weights_optimization_strategy = lincs.classification.OptimizeWeightsUsingGlop(preprocessed_learning_set, models_being_learned)
+                elif mrsort__weights_profiles_breed__linear_program__solver == "alglib":
                     weights_optimization_strategy = lincs.classification.OptimizeWeightsUsingAlglib(preprocessed_learning_set, models_being_learned)
 
             command_line += ["--mrsort.weights-profiles-breed.profiles-strategy", mrsort__weights_profiles_breed__profiles_strategy]

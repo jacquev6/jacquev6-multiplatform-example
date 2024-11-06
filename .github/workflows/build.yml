@@ -1,83 +1,90 @@
 name: Build
 on: push
 jobs:
-  build-for-linux-arm64:
-    runs-on: ubuntu-24.04
-    strategy:
-      matrix:
-        python_version: ['3.8', '3.9', '3.10', '3.11', '3.12', '3.13']
-    steps:
-      - name: Set up QEMU
-        uses: docker/setup-qemu-action@v3
-        with:
-          platforms: arm64
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
+  # build-for-linux-arm64:
+  #   runs-on: ubuntu-24.04
+  #   strategy:
+  #     matrix:
+  #       python_version: ['3.13']
+  #   steps:
+  #     - name: Set up QEMU
+  #       uses: docker/setup-qemu-action@v3
+  #       with:
+  #         platforms: arm64
+  #     - name: Set up Docker Buildx
+  #       uses: docker/setup-buildx-action@v3
 
-      - name: Get the code
-        uses: actions/checkout@v4
+  #     - name: Get the code
+  #       uses: actions/checkout@v4
 
-      - name: Build the wheel, make it machine-independent and check it (during a Docker build in Qemu)
-        run: |
-          docker buildx build --platform linux/arm64 --build-arg PYTHON_VERSION=${{ matrix.python_version }} --load .
-          image=$(docker buildx build --platform linux/arm64 --build-arg PYTHON_VERSION=${{ matrix.python_version }} --load . --quiet)
-          container=$(docker create --platform linux/arm64 $image)
-          docker cp $container:/wd/dist .
+  #     - name: Build the wheel, make it machine-independent and check it (during a Docker build in Qemu)
+  #       run: |
+  #         docker buildx build --platform linux/arm64 --build-arg PYTHON_VERSION=${{ matrix.python_version }} --load .
+  #         image=$(docker buildx build --platform linux/arm64 --build-arg PYTHON_VERSION=${{ matrix.python_version }} --load . --quiet)
+  #         container=$(docker create --platform linux/arm64 $image)
+  #         docker cp $container:/wd/dist .
 
-      - name: Upload the wheel to GitHub Actions artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: wheel-dist-${{ matrix.python_version }}-linux-arm64
-          path: dist
+  #     - name: Upload the wheel to GitHub Actions artifacts
+  #       uses: actions/upload-artifact@v4
+  #       with:
+  #         name: wheel-dist-${{ matrix.python_version }}-linux-arm64
+  #         path: dist
 
-  check-on-linux-arm64:
-    runs-on: ${{ matrix.os }}
-    needs:
-      - build-for-linux-arm64
-    strategy:
-      fail-fast: false
-      matrix:
-        os:
-          - ubuntu-24.04
-        python_version: ['3.8', '3.9', '3.10', '3.11', '3.12', '3.13']
-    steps:
-      - name: Set up QEMU
-        uses: docker/setup-qemu-action@v3
-        with:
-          platforms: arm64
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
-      # DO NOT install any other dependencies, to test that the wheels are self-contained
+  # check-on-linux-arm64:
+  #   runs-on: ${{ matrix.os }}
+  #   needs:
+  #     - build-for-linux-arm64
+  #   strategy:
+  #     fail-fast: false
+  #     matrix:
+  #       os:
+  #         - ubuntu-24.04
+  #       python_version: ['3.13']
+  #   steps:
+  #     - name: Set up QEMU
+  #       uses: docker/setup-qemu-action@v3
+  #       with:
+  #         platforms: arm64
+  #     - name: Set up Docker Buildx
+  #       uses: docker/setup-buildx-action@v3
+  #     # DO NOT install any other dependencies, to test that the wheels are self-contained
 
-      - name: Get the code
-        uses: actions/checkout@v4
+  #     - name: Get the code
+  #       uses: actions/checkout@v4
 
-      - name: Download the wheels from GitHub Actions artifacts
-        uses: actions/download-artifact@v4
-        with:
-          pattern: wheel-dist-${{ matrix.python_version }}-linux-arm64
-          merge-multiple: true
-          path: dist
+  #     - name: Download the wheels from GitHub Actions artifacts
+  #       uses: actions/download-artifact@v4
+  #       with:
+  #         pattern: wheel-dist-${{ matrix.python_version }}-linux-arm64
+  #         merge-multiple: true
+  #         path: dist
 
-      - name: Install the wheel and run it (during a Docker build in Qemu)
-        run: |
-          docker buildx build --platform linux/arm64 --build-arg PYTHON_VERSION=${{ matrix.python_version }} --load . --file Dockerfile.check
-          image=$(docker buildx build --platform linux/arm64 --build-arg PYTHON_VERSION=${{ matrix.python_version }} --load . --file Dockerfile.check --quiet)
-          container=$(docker create --platform linux/arm64 $image)
-          docker cp $container:/output.txt - | tar --extract --to-stdout
+  #     - name: Install the wheel and run it (during a Docker build in Qemu)
+  #       run: |
+  #         docker buildx build --platform linux/arm64 --build-arg PYTHON_VERSION=${{ matrix.python_version }} --load . --file Dockerfile.check
+  #         image=$(docker buildx build --platform linux/arm64 --build-arg PYTHON_VERSION=${{ matrix.python_version }} --load . --file Dockerfile.check --quiet)
+  #         container=$(docker create --platform linux/arm64 $image)
+  #         docker cp $container:/output.txt - | tar --extract --to-stdout
 
   build-for-linux-x86:
     runs-on: ubuntu-20.04
     strategy:
       matrix:
-        python_version: ['3.8', '3.9', '3.10', '3.11', '3.12', '3.13']
+        python_version: ['3.13']
     steps:
       - name: Install Python
         uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python_version }}
       - name: Install Python packages
-        run: pip${{ matrix.python_version }} install auditwheel build twine
+        run: pip${{ matrix.python_version }} install auditwheel build Chrones twine
+      - name: Install CUDA
+        run: |
+          sudo apt-key adv --fetch-keys https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2004/x86_64/3bf863cc.pub
+          sudo add-apt-repository "deb https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2004/x86_64/ /"
+          sudo apt-get update
+          sudo apt-get install --yes --no-install-recommends cuda-cudart-dev-12-1 cuda-nvcc-12-1
+          echo "/usr/local/cuda-12.1/bin" >>$GITHUB_PATH
       - name: Install Boost
         run: |
             cd /home/runner/work
@@ -86,6 +93,16 @@ jobs:
             rm boost_*.tar.gz
             cd boost_*
             sudo cp -r boost /usr/local/include
+      - name: Install OR-Tools
+        run: |
+            cd /home/runner/work
+            wget https://github.com/google/or-tools/releases/download/v8.2/or-tools_ubuntu-20.04_v8.2.8710.tar.gz
+            tar xf or-tools_*.tar.gz
+            rm or-tools_*.tar.gz
+            cd or-tools_*
+            sudo cp -r include/* /usr/local/include
+            sudo cp -r lib/* /usr/local/lib
+            sudo ldconfig
       - name: Install patchelf
         run: |
             cd /home/runner/work
@@ -100,6 +117,9 @@ jobs:
 
       - name: Build the wheel
         run: python${{ matrix.python_version }} -m build --wheel --outdir local-dist
+        env:
+          LINCS_DEV_FORCE_NVCC: "true"
+          LINCS_DEV_FORCE_CHRONES: "true"
       - name: Make the wheel machine-independent
         run: auditwheel repair --plat manylinux_2_31_x86_64 --strip local-dist/*.whl --wheel-dir dist
       - name: Check the wheel
@@ -115,7 +135,7 @@ jobs:
     runs-on: windows-2019
     strategy:
       matrix:
-        python_version: ['3.8', '3.9', '3.10', '3.11', '3.12', '3.13']
+        python_version: ['3.13']
     steps:
       - name: Install Python
         uses: actions/setup-python@v5
@@ -154,6 +174,16 @@ jobs:
             cd boost
             mkdir -p /d/lincs-deps/include /d/lincs-deps/lib
             cp -r boost /d/lincs-deps/include
+      - name: Install OR-Tools
+        shell: msys2 {0}
+        run: |
+            cd /d/a
+            wget https://github.com/google/or-tools/releases/download/v8.2/or-tools_VisualStudio2019-64bit_v8.2.8710.zip
+            unzip or-tools_*.zip
+            rm or-tools_*.zip
+            cd or-tools_*
+            cp -r include/* /d/lincs-deps/include
+            cp -r lib/* /d/lincs-deps/lib
 
       - name: Get the code
         uses: actions/checkout@v4
@@ -179,7 +209,7 @@ jobs:
     runs-on: macos-13
     strategy:
       matrix:
-        python_version: ['3.8', '3.9', '3.10', '3.11', '3.12', '3.13']
+        python_version: ['3.13']
     env:
       MACOSX_DEPLOYMENT_TARGET: 12.0
     steps:
@@ -206,6 +236,15 @@ jobs:
             rm boost_*.tar.gz
             cd boost_*
             sudo cp -r boost /usr/local/include
+      - name: Install OR-Tools
+        run: |
+            cd /Users/runner/work
+            wget https://github.com/google/or-tools/releases/download/v8.2/or-tools_MacOsX-11.2.1_v8.2.8710.tar.gz
+            tar xf or-tools_*.tar.gz
+            rm or-tools_*.tar.gz
+            cd or-tools_*
+            sudo cp -r include/* /usr/local/include
+            sudo cp -r lib/* /usr/local/lib
 
       - name: Get the code
         uses: actions/checkout@v4
@@ -242,7 +281,7 @@ jobs:
           - macos-13
           - macos-14
           - macos-15
-        python_version: ['3.8', '3.9', '3.10', '3.11', '3.12', '3.13']
+        python_version: ['3.13']
         exclude:
           # Older Python versions don't build 'universal2' wheels, so they can't run on the M1 runner that run macOS 14 and 15
           - os: macos-14

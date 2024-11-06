@@ -229,6 +229,7 @@ def make_liblincs_extension():
         extra_compile_args["vendored-c++"] = ["-std=c++17", "-Werror=switch", "-w", "-DQUIET", "-DNBUILD", "-DNCONTRACTS"]
         extra_link_args += ["-fopenmp"]
         libraries += [
+            "ortools",
             f"python{sys.version_info.major}.{sys.version_info.minor}",
         ]
         if os.environ.get("LINCS_DEV_COVERAGE", "false") == "true":
@@ -246,6 +247,7 @@ def make_liblincs_extension():
         library_dirs += [os.path.join(lincs_dependencies, "lib")]
         vc_version = os.environ.get("LINCS_DEV_VC_VERSION", "143")
         libraries += [
+            "ortools",
             f"python{sys.version_info.major}{sys.version_info.minor}",
         ]
     elif sys.platform == "darwin":
@@ -253,6 +255,7 @@ def make_liblincs_extension():
         extra_compile_args["vendored-c++"] = ["-std=c++17", "-Werror=switch", "-w", "-DQUIET", "-DNBUILD", "-DNCONTRACTS"]
         extra_link_args += ["-lomp"]
         libraries += [
+            "ortools",
         ]
     else:
         assert False, f"Unsupported platform: {sys.platform}"
