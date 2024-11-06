@@ -4,13 +4,12 @@ set -o errexit
 set -x
 
 
-rm -rf *.so build dist
-
-# Run beforhand: docker buildx create --name multiplatform --platform linux/amd64,linux/arm64
-
 docker_platforms="linux/amd64 linux/arm64"
 python_versions="3.13"
 
+# Run beforhand: docker buildx create --name multiplatform --platform linux/amd64,linux/arm64
+
+rm -rf dist
 for docker_platform in $docker_platforms
 do
   for python_version in $python_versions
