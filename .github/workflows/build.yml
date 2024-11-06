@@ -57,6 +57,7 @@ jobs:
         with:
           pattern: wheel-dist-${{ matrix.python_version }}-linux-arm64
           merge-multiple: true
+          path: dist
 
       - name: Install the wheel and run it (during a Docker build in Qemu)
         run: |
