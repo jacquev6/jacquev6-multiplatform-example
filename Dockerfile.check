@@ -3,6 +3,12 @@ FROM python:$PYTHON_VERSION AS build
 
 ADD dist/*.whl .
 
-RUN pip3 install --find-links . example
+RUN ls *.whl && pip3 install --find-links . --pre lincs
 
-RUN python3 -c "import example" >/output.txt
+RUN lincs --version >/output.txt
+RUN lincs --help >>/output.txt
+RUN lincs generate classification-problem 3 2 --output-problem problem.yml >>/output.txt
+RUN lincs generate classification-model problem.yml --output-model model.yml >>/output.txt
+RUN lincs generate classified-alternatives problem.yml model.yml 100 --output-alternatives learning-set.csv >>/output.txt
+RUN lincs learn classification-model problem.yml learning-set.csv --output-model learned-model.yml >>/output.txt
+RUN lincs classification-accuracy problem.yml learned-model.yml learning-set.csv >>/output.txt

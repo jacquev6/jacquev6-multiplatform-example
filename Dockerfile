@@ -18,6 +18,16 @@ RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
 WORKDIR /download
 
 
+FROM downloader AS download-boost
+
+RUN set -x \
+ && test $(uname -m) = x86_64 \
+ && wget https://boostorg.jfrog.io/artifactory/main/release/1.82.0/source/boost_1_82_0.tar.gz \
+ && tar xf boost_*.tar.gz \
+ && rm boost_*.tar.gz \
+ && mv boost_* boost
+
+
 FROM downloader AS download-patchelf-amd64
 
 RUN set -x \
@@ -51,11 +61,16 @@ RUN --mount=type=bind,from=download-patchelf,source=/download,target=/download \
     set -x \
  && cp /download/patchelf/bin/patchelf /usr/local/bin
 
+RUN --mount=type=bind,from=download-boost,source=/download,target=/download,readwrite \
+    set -x \
+ && cp -r /download/boost/boost /usr/local/include
+
 RUN pip3 install setuptools auditwheel build twine
 
-ADD example example
+ADD lincs lincs
 ADD setup.py .
 ADD README.rst .
+ADD requirements.txt .
 
 RUN python3 -m build --wheel --outdir local-dist
 ARG AUDITWHEEL_PLATFORM
