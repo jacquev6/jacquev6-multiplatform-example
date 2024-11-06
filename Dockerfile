@@ -63,11 +63,11 @@ ARG AUDITWHEEL_PLATFORM
 
 FROM build AS repair-amd64
 
-RUN auditwheel repair --plat manylinux_2_39_x86_64 --strip local-dist/*.whl --wheel-dir dist
+RUN auditwheel repair --plat manylinux_2_35_x86_64 --strip local-dist/*.whl --wheel-dir dist
 
 FROM build AS repair-arm64
 
-RUN auditwheel repair --plat manylinux_2_39_aarch64 --strip local-dist/*.whl --wheel-dir dist
+RUN auditwheel repair --plat manylinux_2_35_aarch64 --strip local-dist/*.whl --wheel-dir dist
 
 FROM repair-$TARGETARCH AS repair
 
