@@ -150,6 +150,15 @@ jobs:
           python-version: ${{ matrix.python_version }}
       - name: Install Python packages
         run: pip3 install build delocate twine
+      - name: Install OpenMP
+        run: |
+            cd /Users/runner/work
+            mkdir openmp
+            cd openmp
+            wget https://mac.r-project.org/openmp/openmp-16.0.4-darwin20-Release.tar.gz
+            tar xf *.tar.gz
+            sudo cp usr/local/lib/* /usr/local/lib
+            sudo cp usr/local/include/* /usr/local/include
 
       - name: Get the code
         uses: actions/checkout@v4

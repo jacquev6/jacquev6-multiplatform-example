@@ -1,10 +1,24 @@
 # Copyright 2024 Vincent Jacques
 
+import sys
+
 import setuptools
 
 
 with open("README.rst") as f:
     long_description = f.read()
+
+if sys.platform == "linux":
+    extra_compile_args = ["-std=c++17", "-fopenmp"]
+    extra_link_args = ["-fopenmp"]
+elif sys.platform == "win32":
+    extra_compile_args = ["/std:c++17", "/openmp"]
+    extra_link_args = []
+elif sys.platform == "darwin":
+    extra_compile_args = ["-std=c++17", "-Xclang", "-fopenmp"]
+    extra_link_args = ["-lomp"]
+else:
+    raise NotImplementedError(f"Unsupported platform: {sys.platform}")
 
 setuptools.setup(
     name="example",
@@ -18,6 +32,8 @@ setuptools.setup(
     packages=setuptools.find_packages(),
     ext_modules=[setuptools.Extension(
         name="libexample",
-        sources=["example/libexample/module.c"],
+        sources=["example/libexample/module.cpp"],
+        extra_compile_args=extra_compile_args,
+        extra_link_args=extra_link_args,
     )],
 )

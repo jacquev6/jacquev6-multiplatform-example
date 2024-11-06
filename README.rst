@@ -1,5 +1,7 @@
 An example package for building C/C++ extensions for multiple OSes and architectures
 
+It supports C, C++ and OpenMP code.
+
 It's able to build the following binary wheels on GitHub Actions:
 
 - example-1.0-cp38-cp38-macosx_12_0_x86_64.whl
